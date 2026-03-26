@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "/YogaBuddy/", // Base public path for production
+  base: "/PoseFlow/", // Base public path for production
   server: {
     host: "::",
     port: 5003,

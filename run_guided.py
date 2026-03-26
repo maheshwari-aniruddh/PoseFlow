@@ -1,28 +1,18 @@
-"""
-Terminal app to run guided yoga sessions
-"""
 import sys
 import cv2
 from guided_session import GuidedSession
 from yoga_program import YogaProgram
-
 def main():
     print("="*60)
     print("🧘 YogaBuddy - Guided Session")
     print("="*60)
-    
-    # Initialize
     session = GuidedSession()
     program_manager = YogaProgram()
-    
-    # List available programs
     print("\n📋 Available Programs:")
     programs = program_manager.list_programs()
     for i, prog_name in enumerate(programs):
         prog = program_manager.get_program(prog_name)
         print(f"  {i+1}. {prog['name']} - {prog['description']}")
-    
-    # Select program
     if len(sys.argv) > 1:
         program_name = sys.argv[1]
     else:
@@ -35,8 +25,6 @@ def main():
         except (ValueError, IndexError, KeyboardInterrupt):
             print("Using default: beginner")
             program_name = 'beginner'
-    
-    # Select camera
     camera_id = None
     if len(sys.argv) > 2:
         try:
@@ -44,16 +32,12 @@ def main():
             print(f"Using camera {camera_id} from command line")
         except ValueError:
             pass
-    
-    # If no camera specified, list and let user choose
     if camera_id is None:
         print("\n📹 Scanning for cameras...")
         available_cameras = session.list_cameras()
-        
         if not available_cameras:
             print("❌ No cameras found!")
             return
-        
         if len(available_cameras) == 1:
             camera_id = available_cameras[0]
             print(f"✅ Using camera {camera_id}")
@@ -68,7 +52,6 @@ def main():
                         height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
                         print(f"  Camera {cam_id}: {int(width)}x{int(height)}")
                     cap.release()
-            
             try:
                 choice = input(f"\nSelect camera ({available_cameras[0]}-{available_cameras[-1]}): ").strip()
                 camera_id = int(choice)
@@ -77,8 +60,6 @@ def main():
             except (ValueError, KeyboardInterrupt):
                 camera_id = available_cameras[0]
                 print(f"Using default camera {camera_id}")
-    
-    # Run session
     try:
         session.run_guided_session(program_name, camera_id)
     except KeyboardInterrupt:
@@ -87,7 +68,5 @@ def main():
         print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
-
 if __name__ == "__main__":
     main()
-

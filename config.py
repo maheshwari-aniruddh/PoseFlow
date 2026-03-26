@@ -1,24 +1,13 @@
-"""
-Configuration file for YogaBuddy app
-"""
 import os
-
-# Dataset paths
 DATASET_ROOT = "archive (2)"
 TRAIN_DIR = os.path.join(DATASET_ROOT, "train")
 VALID_DIR = os.path.join(DATASET_ROOT, "valid")
 TEST_DIR = os.path.join(DATASET_ROOT, "test")
-
-# MediaPipe model path
 MEDIAPIPE_MODEL_PATH = "pose_landmarker_full.task"
 MEDIAPIPE_MODEL_DIR = "."
-
-# Output directories
 TEMPLATES_DIR = "templates"
 MODELS_DIR = "models"
 OUTPUT_DIR = "output"
-
-# Selected poses for training - User's specific list
 TOP_POSES = [
     "Boat_Pose_or_Paripurna_Navasana_",
     "Bound_Angle_Pose_or_Baddha_Konasana_",
@@ -45,31 +34,21 @@ TOP_POSES = [
     "Warrior_II_Pose_or_Virabhadrasana_II_",
     "Wind_Relieving_pose_or_Pawanmuktasana",
 ]
-
-# MediaPipe keypoint indices (mapped from 33 MediaPipe keypoints to 17 common keypoints)
 KEYPOINT_NAMES = [
     'nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear',
     'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow',
     'left_wrist', 'right_wrist', 'left_hip', 'right_hip',
     'left_knee', 'right_knee', 'left_ankle', 'right_ankle'
 ]
-
 KEYPOINT_INDICES = {name: idx for idx, name in enumerate(KEYPOINT_NAMES)}
-
-# Angle tolerance thresholds (very tight for maximum accuracy)
 ANGLE_TOLERANCE = {
-    'dangerous': 15.0,  # degrees - red feedback (very tight)
-    'improvable': 7.0,   # degrees - yellow feedback (very tight)
-    'correct': 3.0       # degrees - green feedback (very precise)
+    'dangerous': 15.0,
+    'improvable': 7.0,
+    'correct': 3.0
 }
-
-# Pose detection thresholds (very tolerant)
-POSE_CONFIDENCE_THRESHOLD = 0.2  # Lowered from 0.3 for more tolerance
-POSE_ENTRY_THRESHOLD = 0.3  # Lowered from 0.5 for easier entry
-POSE_EXIT_THRESHOLD = 0.15  # Lowered from 0.25 for more tolerance
-POSE_SIMILARITY_THRESHOLD = 0.2  # Lowered from 0.3 for more tolerance
-
-# Session tracking
-MIN_HOLD_DURATION = 1.0  # seconds
-REP_COUNT_WINDOW = 2.0  # seconds between rep counts
-
+POSE_CONFIDENCE_THRESHOLD = 0.2
+POSE_ENTRY_THRESHOLD = 0.3
+POSE_EXIT_THRESHOLD = 0.15
+POSE_SIMILARITY_THRESHOLD = 0.2
+MIN_HOLD_DURATION = 1.0
+REP_COUNT_WINDOW = 2.0

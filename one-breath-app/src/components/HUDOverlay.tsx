@@ -1,136 +1,34 @@
-import React from 'react';
-import { Activity, Target, Zap, Shield, Crosshair } from 'lucide-react';
-
-interface HUDProps {
-    debugInfo: any;
-    statistics: any; // Using any for flexibility during rapid iteration, can tighten later
+import React from 'react'; import { Activity, Target, Zap, Shield, Crosshair } from 'lucide-react'; interface HUDProps {     debugInfo: any;     statistics: any;
     isVisible: boolean;
-}
-
-const HUDOverlay: React.FC<HUDProps> = ({ debugInfo, statistics, isVisible }) => {
-    if (!isVisible) return null;
-
-    // Helper to format scores
-    const fmtScore = (val: any) => (typeof val === 'number' ? val.toFixed(2) : '0.00');
-    const fmtPct = (val: any) => (typeof val === 'number' ? val.toFixed(0) : '0');
-
-    return (
-        <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-            {/* Decorative Corner Brackets */}
-            <div className="absolute top-4 left-4 w-16 h-16 border-t-2 border-l-2 border-cyan-400 opacity-60 rounded-tl-lg" />
-            <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-cyan-400 opacity-60 rounded-tr-lg" />
-            <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-cyan-400 opacity-60 rounded-bl-lg" />
-            <div className="absolute bottom-4 right-4 w-16 h-16 border-b-2 border-r-2 border-cyan-400 opacity-60 rounded-br-lg" />
-
-            {/* Crosshair Center (Subtle) */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20">
-                <Crosshair className="w-64 h-64 text-cyan-200 animate-spin-slow" strokeWidth={0.5} />
-            </div>
-
-            {/* Scanline Effect */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent h-[20%] w-full animate-scanline pointer-events-none" />
-
-            {/* Top Bar: System Status */}
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-sm px-6 py-1 rounded-full border border-cyan-500/30">
-                <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${debugInfo?.can_start_timer ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                    <span className="text-xs uppercase tracking-widest text-cyan-300 font-mono">
-                        {debugInfo?.can_start_timer ? 'TARGET LOCKED' : 'SEARCHING...'}
-                    </span>
-                </div>
-            </div>
-
-            {/* Left Panel: Core Metrics */}
-            <div className="absolute top-1/4 left-8 flex flex-col gap-4 animate-slide-in-left">
-                {/* Confidence */}
-                <div className="glass-hud p-4 rounded-lg w-48 animate-hud-flicker">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-cyan-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                            <Activity className="w-3 h-3" /> Confidence
-                        </span>
-                        <span className="text-cyan-100 font-mono text-sm">{fmtScore(debugInfo?.pose_confidence)}</span>
-                    </div>
+} const HUDOverlay: React.FC<HUDProps> = ({ debugInfo, statistics, isVisible }) => {
+    if (!isVisible) return null;     const fmtScore = (val: any) => (typeof val === 'number' ? val.toFixed(2) : '0.00');     const fmtPct = (val: any) => (typeof val === 'number' ? val.toFixed(0) : '0');     return (         <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">             {}             <div className="absolute top-4 left-4 w-16 h-16 border-t-2 border-l-2 border-cyan-400 opacity-60 rounded-tl-lg" />             <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-cyan-400 opacity-60 rounded-tr-lg" />             <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-cyan-400 opacity-60 rounded-bl-lg" />             <div className="absolute bottom-4 right-4 w-16 h-16 border-b-2 border-r-2 border-cyan-400 opacity-60 rounded-br-lg" />
+            {}             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20">                 <Crosshair className="w-64 h-64 text-cyan-200 animate-spin-slow" strokeWidth={0.5} />
+            </div>             {}             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent h-[20%] w-full animate-scanline pointer-events-none" />
+            {}             <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-sm px-6 py-1 rounded-full border border-cyan-500/30">                 <div className="flex items-center gap-2">                     <div className={`w-2 h-2 rounded-full ${debugInfo?.can_start_timer ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />                     <span className="text-xs uppercase tracking-widest text-cyan-300 font-mono">                         {debugInfo?.can_start_timer ? 'TARGET LOCKED' : 'SEARCHING...'}                     </span>                 </div>             </div>             {}             <div className="absolute top-1/4 left-8 flex flex-col gap-4 animate-slide-in-left">
+                {}
+                <div className="glass-hud p-4 rounded-lg w-48 animate-hud-flicker">                     <div className="flex justify-between items-center mb-1">
+                        <span className="text-cyan-400 text-xs uppercase tracking-wider flex items-center gap-1">                             <Activity className="w-3 h-3" /> Confidence                         </span>                         <span className="text-cyan-100 font-mono text-sm">{fmtScore(debugInfo?.pose_confidence)}</span>                     </div>
                     <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">
-                        <div
-                            className="bg-cyan-400 h-full transition-all duration-300"
-                            style={{ width: `${Math.min((debugInfo?.pose_confidence || 0) * 100, 100)}%` }}
-                        />
-                    </div>
-                </div>
-
-                {/* Alignment */}
-                <div className="glass-hud p-4 rounded-lg w-48 animate-hud-flicker" style={{ animationDelay: '0.2s' }}>
-                    <div className="flex justify-between items-center mb-1">
+                        <div                             className="bg-cyan-400 h-full transition-all duration-300"                             style={{ width: `${Math.min((debugInfo?.pose_confidence || 0) * 100, 100)}%` }}                         />
+                    </div>                 </div>                 {}                 <div className="glass-hud p-4 rounded-lg w-48 animate-hud-flicker" style={{ animationDelay: '0.2s' }}>                     <div className="flex justify-between items-center mb-1">
                         <span className="text-green-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                            <Target className="w-3 h-3" /> Alignment
-                        </span>
-                        <span className="text-green-100 font-mono text-sm">{fmtScore(debugInfo?.angle_similarity)}</span>
-                    </div>
-                    <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">
-                        <div
-                            className="bg-green-400 h-full transition-all duration-300"
-                            style={{ width: `${Math.min((debugInfo?.angle_similarity || 0) * 100, 100)}%` }}
-                        />
-                    </div>
-                </div>
-
-                {/* Stability */}
-                <div className="glass-hud p-4 rounded-lg w-48 animate-hud-flicker" style={{ animationDelay: '0.4s' }}>
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-purple-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                            <Shield className="w-3 h-3" /> Stability
-                        </span>
-                        <span className="text-purple-100 font-mono text-sm">
-                            {debugInfo?.stability_frames || 0} / {debugInfo?.stability_required || 0}
-                        </span>
-                    </div>
-                    <div className="flex gap-1 mt-1">
-                        {Array.from({ length: debugInfo?.stability_required || 5 }).map((_, i) => (
-                            <div
-                                key={i}
-                                className={`h-1 flex-1 rounded-full transition-colors duration-200 ${i < (debugInfo?.stability_frames || 0) ? 'bg-purple-400' : 'bg-gray-700'}`}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Right Panel: Session Stats (If available) */}
-            {statistics && (
-                <div className="absolute top-1/4 right-8 flex flex-col gap-4 text-right animate-slide-in-right">
-                    <div className="glass-hud p-4 rounded-lg w-48 border-r-4 border-r-cyan-500/50">
-                        <span className="text-xs text-cyan-400 uppercase">Accuracy</span>
-                        <div className="text-2xl text-white font-mono font-bold text-glow-cyan">
-                            {fmtPct(statistics.accuracyScore)}%
+                            <Target className="w-3 h-3" /> Alignment                         </span>
+                        <span className="text-green-100 font-mono text-sm">{fmtScore(debugInfo?.angle_similarity)}</span>                     </div>                     <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">                         <div                             className="bg-green-400 h-full transition-all duration-300"                             style={{ width: `${Math.min((debugInfo?.angle_similarity || 0) * 100, 100)}%` }}
+                        />                     </div>                 </div>                 {}
+                <div className="glass-hud p-4 rounded-lg w-48 animate-hud-flicker" style={{ animationDelay: '0.4s' }}>                     <div className="flex justify-between items-center mb-1">                         <span className="text-purple-400 text-xs uppercase tracking-wider flex items-center gap-1">
+                            <Shield className="w-3 h-3" /> Stability                         </span>
+                        <span className="text-purple-100 font-mono text-sm">                             {debugInfo?.stability_frames || 0} / {debugInfo?.stability_required || 0}                         </span>
+                    </div>                     <div className="flex gap-1 mt-1">
+                        {Array.from({ length: debugInfo?.stability_required || 5 }).map((_, i) => (                             <div                                 key={i}                                 className={`h-1 flex-1 rounded-full transition-colors duration-200 ${i < (debugInfo?.stability_frames || 0) ? 'bg-purple-400' : 'bg-gray-700'}`}                             />                         ))}                     </div>
+                </div>             </div>             {}
+            {statistics && (                 <div className="absolute top-1/4 right-8 flex flex-col gap-4 text-right animate-slide-in-right">                     <div className="glass-hud p-4 rounded-lg w-48 border-r-4 border-r-cyan-500/50">                         <span className="text-xs text-cyan-400 uppercase">Accuracy</span>
+                        <div className="text-2xl text-white font-mono font-bold text-glow-cyan">                             {fmtPct(statistics.accuracyScore)}%
                         </div>
                     </div>
-                    <div className="glass-hud p-4 rounded-lg w-48 border-r-4 border-r-green-500/50">
-                        <span className="text-xs text-green-400 uppercase">Avg Hold</span>
-                        <div className="text-2xl text-white font-mono font-bold text-glow-green">
-                            {fmtScore(statistics.avgHoldDuration)}s
-                        </div>
-                    </div>
-                    <div className="glass-hud p-4 rounded-lg w-48 border-r-4 border-r-yellow-500/50">
-                        <span className="text-xs text-yellow-400 uppercase">Form Score</span>
-                        <div className="text-2xl text-white font-mono font-bold">
-                            {fmtPct(statistics.avgFormScore)}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Bottom Center: Current Status Text */}
-            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center w-full max-w-md">
-                {debugInfo?.isInPose && (
+                    <div className="glass-hud p-4 rounded-lg w-48 border-r-4 border-r-green-500/50">                         <span className="text-xs text-green-400 uppercase">Avg Hold</span>                         <div className="text-2xl text-white font-mono font-bold text-glow-green">                             {fmtScore(statistics.avgHoldDuration)}s                         </div>                     </div>                     <div className="glass-hud p-4 rounded-lg w-48 border-r-4 border-r-yellow-500/50">                         <span className="text-xs text-yellow-400 uppercase">Form Score</span>                         <div className="text-2xl text-white font-mono font-bold">                             {fmtPct(statistics.avgFormScore)}
+                        </div>                     </div>                 </div>
+            )}             {}             <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center w-full max-w-md">                 {debugInfo?.isInPose && (
                     <div className="animate-pulse-success bg-green-500/20 backdrop-blur-md border border-green-500/50 text-green-100 px-6 py-2 rounded-full font-mono text-sm tracking-widest uppercase">
-                        <Zap className="w-4 h-4 inline-block mr-2 -mt-1" />
-                        Perfect Form Maintained
-                    </div>
-                )}
-            </div>
-
-        </div>
-    );
-};
-
-export default HUDOverlay;
+                        <Zap className="w-4 h-4 inline-block mr-2 -mt-1" />                         Perfect Form Maintained
+                    </div>                 )}             </div>         </div>     );
+}; export default HUDOverlay;

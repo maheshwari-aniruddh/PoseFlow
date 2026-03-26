@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepgram TTS Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-speak {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-speak:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-speak:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-stop {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-stop:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .char-count {
+            text-align: right;
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .voice-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .voice-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .examples {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .example-btn {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Deepgram TTS Test</h1>
+        <p class="subtitle">Test text-to-speech with Deepgram API</p>
+
+        <div class="input-group">
+            <label for="textInput">Enter text to speak:</label>
+            <textarea 
+                id="textInput" 
+                placeholder="Type or paste your text here...&#10;&#10;Example: Hello! This is a test of Deepgram text-to-speech."></textarea>
+            <div class="char-count">
+                <span id="charCount">0</span> characters
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="voiceSelect">Select Voice:</label>
+            <select id="voiceSelect" class="voice-select">
+                <option value="arcas" selected>Arcas (Male, Deep) ⭐</option>
+                <option value="asteria">Asteria (Female, Friendly)</option>
+                <option value="luna">Luna (Female, Calm)</option>
+                <option value="stella">Stella (Female, Energetic)</option>
+                <option value="athena">Athena (Female, Professional)</option>
+                <option value="hera">Hera (Female, Warm)</option>
+                <option value="orion">Orion (Male, Strong)</option>
+                <option value="perseus">Perseus (Male, Clear)</option>
+                <option value="angus">Angus (Male, Authoritative)</option>
+                <option value="zeus">Zeus (Male, Powerful)</option>
+                <option value="calliope">Calliope (Female, Expressive)</option>
+                <option value="dionysus">Dionysus (Male, Casual)</option>
+                <option value="juno">Juno (Female, Confident)</option>
+                <option value="pythia">Pythia (Female, Mysterious)</option>
+            </select>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-speak" id="speakBtn" onclick="speakText()">
+                🔊 Speak
+            </button>
+            <button class="btn-stop" id="stopBtn" onclick="stopSpeaking()" disabled>
+                ⏹ Stop
+            </button>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="examples">
+            <h3>Quick Examples:</h3>
+            <button class="example-btn" onclick="loadExample('Great job! Your front leg needs adjustment. Try to straighten your front leg a bit. Keep going!')">
+                Yoga Correction
+            </button>
+            <button class="example-btn" onclick="loadExample('Hello! This is a test of Deepgram text-to-speech. The voice sounds natural and clear.')">
+                Simple Test
+            </button>
+            <button class="example-btn" onclick="loadExample('Welcome to your yoga session. Let\'s begin with the Tree Pose. Hold for 20 seconds.')">
+                Yoga Instruction
+            </button>
+            <button class="example-btn" onclick="loadExample('Perfect form! You\'re holding it beautifully! Keep breathing and stay steady.')">
+                Encouragement
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Use local backend server (Python SDK)
+        const BACKEND_URL = 'http://localhost:5001/speak';
+        
+        let currentAudio = null;
+        const textInput = document.getElementById('textInput');
+        const speakBtn = document.getElementById('speakBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const charCount = document.getElementById('charCount');
+        const voiceSelect = document.getElementById('voiceSelect');
+
+        // Debug function to log API calls
+        function logError(error, response) {
+            console.error('API Error:', error);
+            if (response) {
+                response.text().then(text => {
+                    console.error('Response body:', text);
+                }).catch(e => console.error('Could not read response:', e));
+            }
+        }
+
+        // Update character count
+        textInput.addEventListener('input', () => {
+            charCount.textContent = textInput.value.length;
+        });
+
+        // Load example text
+        function loadExample(text) {
+            textInput.value = text;
+            charCount.textContent = text.length;
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            setTimeout(() => {
+                status.className = 'status';
+            }, 5000);
+        }
+
+        // Speak text using Deepgram TTS
+        async function speakText() {
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                showStatus('Please enter some text to speak.', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            speakBtn.disabled = true;
+            stopBtn.disabled = false;
+            showStatus('Generating speech...', 'info');
+
+            try {
+                // Call local backend server (uses Deepgram Python SDK)
+                console.log('Calling backend server:', BACKEND_URL);
+                console.log('Text:', text.substring(0, 50) + '...');
+                
+                const response = await fetch(BACKEND_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text
+                    })
+                });
+
+                if (!response.ok) {
+                    // Get detailed error message
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            errorMessage = errorJson.message || errorJson.error || errorJson.err_msg || errorText;
+                        } catch {
+                            errorMessage = errorText || errorMessage;
+                        }
+                    } catch (e) {
+                        console.error('Could not parse error:', e);
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                // Get audio blob (backend returns MP3)
+                const audioBlob = await response.blob();
+                console.log('Audio blob size:', audioBlob.size, 'bytes');
+                console.log('Audio blob type:', audioBlob.type);
+                
+                if (audioBlob.size === 0) {
+                    throw new Error('Received empty audio response from backend');
+                }
+                
+                const audioUrl = URL.createObjectURL(audioBlob);
+                console.log('Created audio URL:', audioUrl);
+                
+                // Create audio element and play automatically
+                currentAudio = new Audio(audioUrl);
+                
+                // Set up event listeners BEFORE playing
+                currentAudio.addEventListener('loadeddata', () => {
+                    console.log('Audio loaded successfully');
+                });
+                
+                currentAudio.addEventListener('canplay', () => {
+                    console.log('Audio can play - starting playback');
+                    showStatus('Playing audio...', 'success');
+                });
+                
+                currentAudio.addEventListener('play', () => {
+                    console.log('Audio started playing');
+                    showStatus('🔊 Playing audio...', 'success');
+                });
+                
+                // Clean up when audio finishes
+                currentAudio.addEventListener('ended', () => {
+                    console.log('Audio playback ended');
+                    URL.revokeObjectURL(audioUrl);
+                    speakBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    currentAudio = null;
+                    showStatus('✅ Audio playback completed.', 'success');
+                });
+
+                // Handle errors during playback
+                currentAudio.addEventListener('error', (e) => {
+                    console.error('Audio playback error:', e);
+                    console.error('Audio error code:', currentAudio.error?.code);
+                    console.error('Audio error message:', currentAudio.error?.message);
+                    let errorMsg = 'Error playing audio.';
+                    if (currentAudio.error) {
+                        const errorCodes = {
+                            1: 'MEDIA_ERR_ABORTED',
+                            2: 'MEDIA_ERR_NETWORK',
+                            3: 'MEDIA_ERR_DECODE',
+                            4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+                        };
+                        errorMsg = `Audio error: ${errorCodes[currentAudio.error.code] || 'Unknown error'}`;
+                    }
+                    showStatus(errorMsg, 'error');
+                    URL.revokeObjectURL(audioUrl);
+                    speakBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    currentAudio = null;
+                });
+                
+                // Play audio automatically
+                try {
+                    showStatus('Loading audio...', 'info');
+                    // Wait for audio to be ready, then play
+                    currentAudio.addEventListener('canplaythrough', async () => {
+                        try {
+                            await currentAudio.play();
+                            console.log('Audio play() called successfully');
+                        } catch (playError) {
+                            console.error('Error calling play():', playError);
+                            showStatus(`Failed to play: ${playError.message}`, 'error');
+                            speakBtn.disabled = false;
+                            stopBtn.disabled = true;
+                        }
+                    }, { once: true });
+                    
+                    // Also try to play immediately (in case canplaythrough already fired)
+                    if (currentAudio.readyState >= 2) { // HAVE_CURRENT_DATA
+                        await currentAudio.play();
+                        console.log('Audio play() called immediately');
+                    } else {
+                        // Load the audio first
+                        currentAudio.load();
+                    }
+                } catch (playError) {
+                    console.error('Error setting up audio:', playError);
+                    throw new Error(`Failed to setup audio: ${playError.message}`);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+                speakBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+
+        // Stop speaking
+        function stopSpeaking() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+                showStatus('Audio stopped.', 'info');
+            }
+            speakBtn.disabled = false;
+            stopBtn.disabled = true;
+        }
+
+        // Allow Enter+Ctrl/Cmd to speak
+        textInput.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                speakText();
+            }
+        });
+    </script>
+</body>
+</html>
+

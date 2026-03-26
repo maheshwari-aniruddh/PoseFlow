@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Morning Meditation</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.85)),
+        linear-gradient(to bottom, hsl(280, 70%, 65%, 0.4), hsl(240, 80%, 75%, 0.4)),
+        url("Screenshot 2025-11-15 at 5.40.05 PM.png") center / cover no-repeat fixed;
+      color: #f5f5ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .back-link {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 500;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      z-index: 1000;
+      transition: opacity 0.3s ease;
+    }
+    .back-link:hover {
+      opacity: 0.7;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 40px;
+    }
+
+    #canvas {
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .start-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.85)),
+                  linear-gradient(to bottom, hsl(280, 70%, 65%, 0.4), hsl(240, 80%, 75%, 0.4)),
+                  url("Screenshot 2025-11-15 at 5.40.05 PM.png") center / cover no-repeat fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .start-button {
+      padding: 20px 48px;
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.5), hsl(240, 80%, 75%, 0.5));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.6),
+        0 0 15px hsl(280, 70%, 65%, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .start-button:hover {
+      transform: translateY(-2px) scale(1.05);
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.7), hsl(240, 80%, 75%, 0.7));
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.7),
+        0 0 22px hsl(280, 70%, 65%, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .start-overlay.hidden {
+      display: none;
+    }
+
+    .narration-button {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 16px 48px;
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.5), hsl(240, 80%, 75%, 0.5));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.6),
+        0 0 15px hsl(280, 70%, 65%, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      z-index: 100;
+    }
+
+    .narration-button:hover {
+      transform: translateX(-50%) translateY(-2px);
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.7), hsl(240, 80%, 75%, 0.7));
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.7),
+        0 0 22px hsl(280, 70%, 65%, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .narration-button.hidden {
+      display: none;
+    }
+
+    .narration-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .narration-button:disabled:hover {
+      transform: translateX(-50%);
+    }
+
+    .center-image {
+      max-width: 100%;
+      max-height: 50vh;
+      object-fit: contain;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <a href="menu.html" class="back-link">← Back</a>
+  
+  <div class="start-overlay" id="startOverlay">
+    <button class="start-button" id="startButton">Start Morning Meditation</button>
+  </div>
+  
+  <button class="narration-button hidden" id="narrationButton">Start Narration</button>
+  
+  <div class="content">
+    <img src="Box+Breathing.jpeg" alt="Box Breathing" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);" />
+    <canvas id="canvas"></canvas>
+  </div>
+  
+  <script>
+    // Text-to-speech intro script for morning meditation
+    const morningScript = "Good morning. Welcome to your morning meditation. Find a comfortable seated position. Take a moment to set your intention for this new day. As you breathe, imagine yourself walking up a gentle hill, gathering energy and clarity with each step. When you reach the top, you'll have a clear view of the day ahead. Then, as you walk down, release any worries or tension. Let's begin when you're ready.";
+    
+    // Deepgram TTS backend URL (same as yoga feedback)
+    const TTS_BACKEND_URL = "http://localhost:5001/speak";
+    const TTS_VOICE = "arcas"; // Deep male voice, same as yoga feedback
+
+    let animationStarted = false;
+    let lastSpokenPhase = null;
+    let isSpeaking = false;
+    let lastPersonX = null;
+
+    // Helper function to speak using Deepgram TTS
+    async function speakText(text) {
+      if (isSpeaking) return; // Don't interrupt if already speaking
+      
+      try {
+        isSpeaking = true;
+        const response = await fetch(TTS_BACKEND_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: text,
+            voice: TTS_VOICE
+          })
+        });
+
+        if (!response.ok) {
+          console.error('TTS Error:', response.status);
+          isSpeaking = false;
+          return;
+        }
+
+        const audioBlob = await response.blob();
+        if (audioBlob.size === 0) {
+          console.error('Empty audio response');
+          isSpeaking = false;
+          return;
+        }
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.volume = 1.0; // Maximum volume
+
+        audio.addEventListener('ended', () => {
+          URL.revokeObjectURL(audioUrl);
+          isSpeaking = false;
+        });
+
+        audio.addEventListener('error', () => {
+          URL.revokeObjectURL(audioUrl);
+          isSpeaking = false;
+        });
+
+        await audio.play();
+      } catch (error) {
+        console.error('TTS Error:', error);
+        isSpeaking = false;
+      }
+    }
+
+    // Start button handler
+    const startButton = document.getElementById('startButton');
+    const startOverlay = document.getElementById('startOverlay');
+    const narrationButton = document.getElementById('narrationButton');
+    let currentAudio = null;
+    let audioBlobCache = null;
+    
+    startButton.addEventListener('click', () => {
+      // Hide overlay and show narration button (disabled initially)
+      startOverlay.classList.add('hidden');
+      narrationButton.classList.remove('hidden');
+      narrationButton.disabled = true;
+      narrationButton.textContent = 'Loading narration...';
+      
+      // Pre-fetch audio in background (don't try to play yet)
+      fetch(TTS_BACKEND_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: morningScript,
+          voice: TTS_VOICE
+        })
+      }).then(response => {
+        if (!response.ok) {
+          console.error('TTS Error:', response.status);
+          narrationButton.textContent = 'Narration unavailable';
+          narrationButton.disabled = true;
+          return null;
+        }
+        return response.blob();
+      }).then(audioBlob => {
+        if (!audioBlob || audioBlob.size === 0) {
+          console.error('Empty audio response');
+          narrationButton.textContent = 'Narration unavailable';
+          narrationButton.disabled = true;
+          return;
+        }
+        audioBlobCache = audioBlob;
+        narrationButton.textContent = 'Start Narration';
+        narrationButton.disabled = false;
+      }).catch(error => {
+        console.error('TTS Error:', error);
+        narrationButton.textContent = 'Narration unavailable';
+        narrationButton.disabled = true;
+      });
+    });
+
+    // Narration button - plays audio with direct user interaction
+    narrationButton.addEventListener('click', (e) => {
+      // Prevent if disabled
+      if (narrationButton.disabled || !audioBlobCache) {
+        e.preventDefault();
+        return;
+      }
+
+      // Hide narration button
+      narrationButton.classList.add('hidden');
+
+      // Create and play audio - this is direct user interaction so it will work
+      const audioUrl = URL.createObjectURL(audioBlobCache);
+      currentAudio = new Audio(audioUrl);
+      currentAudio.volume = 1.0; // Maximum volume
+
+      // Set up event listeners
+      currentAudio.addEventListener('ended', () => {
+        URL.revokeObjectURL(audioUrl);
+        animationStarted = true;
+        currentAudio = null;
+      });
+
+      currentAudio.addEventListener('error', (e) => {
+        console.error('Audio playback error:', e);
+        URL.revokeObjectURL(audioUrl);
+        animationStarted = true;
+        currentAudio = null;
+      });
+
+      // Play directly - this is in direct response to user click
+      currentAudio.play().then(() => {
+        // Playback started successfully
+      }).catch((e) => {
+        console.error('Audio play error:', e);
+        URL.revokeObjectURL(audioUrl);
+        animationStarted = true;
+        currentAudio = null;
+      });
+    });
+
+    // Modified animation.js to wait for speech
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size
+    canvas.width = 800;
+    canvas.height = 600;
+
+    // Animation variables
+    let frame = 0;
+    let personX = 100;
+    let personY = 400;
+    let direction = 1;
+    const baseWalkSpeed = 2;
+    const slowSpeed = 1;
+    const fastSpeed = 3;
+    const hillStartX = 0;
+    const hillEndX = 800;
+    const hillPeakX = 300;
+    const hillPeakY = 200;
+    const groundY = 500;
+
+    const personHeight = 60;
+    const personWidth = 30;
+
+    const parabolaA = 0.003333;
+    const parabolaH = hillPeakX;
+    const parabolaK = hillPeakY;
+
+    function getHillY(x) {
+      return parabolaA * Math.pow(x - parabolaH, 2) + parabolaK;
+    }
+
+    function getSlopeAngle(x) {
+      const slope = 2 * parabolaA * (x - parabolaH);
+      return Math.atan(slope);
+    }
+
+    function drawHill() {
+      ctx.beginPath();
+      ctx.moveTo(hillStartX, getHillY(hillStartX));
+      
+      for (let x = hillStartX; x <= hillEndX; x += 2) {
+        ctx.lineTo(x, getHillY(x));
+      }
+      
+      ctx.lineTo(hillEndX, canvas.height);
+      ctx.lineTo(hillStartX, canvas.height);
+      ctx.closePath();
+      ctx.fillStyle = '#66BB6A';
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(hillStartX, getHillY(hillStartX));
+      
+      for (let x = hillStartX; x <= hillEndX; x += 2) {
+        ctx.lineTo(x, getHillY(x));
+      }
+      
+      ctx.lineTo(hillEndX, 0);
+      ctx.lineTo(hillStartX, 0);
+      ctx.closePath();
+      ctx.fillStyle = '#64B5F6';
+      ctx.fill();
+      
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(hillStartX, getHillY(hillStartX));
+      
+      for (let x = hillStartX; x <= hillEndX; x += 2) {
+        ctx.lineTo(x, getHillY(x));
+      }
+      ctx.stroke();
+    }
+
+    function drawPerson(x, y, frame) {
+      ctx.save();
+      ctx.translate(x, y);
+      
+      const slopeAngle = getSlopeAngle(x);
+      ctx.rotate(slopeAngle);
+      
+      const facingRight = direction === 1;
+      if (!facingRight) {
+        ctx.scale(-1, 1);
+      }
+      
+      const legOffset = Math.sin(frame * 0.3) * 8;
+      const armOffset = Math.sin(frame * 0.3 + Math.PI) * 6;
+      
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(0, -personHeight + 10, 8, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -personHeight + 18);
+      ctx.lineTo(0, -personHeight + 40);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(0, -personHeight + 25);
+      ctx.lineTo(-8 - armOffset, -personHeight + 35);
+      ctx.moveTo(0, -personHeight + 25);
+      ctx.lineTo(8 + armOffset, -personHeight + 35);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(0, -personHeight + 40);
+      ctx.lineTo(-6 - legOffset, -personHeight + 55);
+      ctx.moveTo(0, -personHeight + 40);
+      ctx.lineTo(6 + legOffset, -personHeight + 55);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#000';
+      ctx.fillRect(-8 - legOffset, -personHeight + 55, 4, 3);
+      ctx.fillRect(4 + legOffset, -personHeight + 55, 4, 3);
+      
+      ctx.restore();
+    }
+
+    function animate() {
+      if (!animationStarted) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      drawHill();
+      
+      let currentSpeed;
+      if (personX < hillPeakX) {
+        currentSpeed = slowSpeed;
+      } else {
+        currentSpeed = fastSpeed;
+      }
+      
+      personX += currentSpeed * direction;
+      
+      if (personX >= hillEndX) {
+        personX = hillStartX;
+      } else if (personX <= hillStartX) {
+        personX = hillEndX;
+      }
+      
+      personY = getHillY(personX) + 5;
+      
+      drawPerson(personX, personY, frame);
+      
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      
+      let progress;
+      if (personX < hillPeakX) {
+        progress = (personX - hillStartX) / (hillPeakX - hillStartX);
+      } else {
+        progress = (hillEndX - personX) / (hillEndX - hillPeakX);
+      }
+      
+      progress = Math.max(0, Math.min(1, progress));
+      
+      const minFontSize = 16;
+      const maxFontSize = 80;
+      const fontSize = minFontSize + (maxFontSize - minFontSize) * progress;
+      ctx.font = `bold ${fontSize}px Arial`;
+      
+      if (personX < hillPeakX) {
+        ctx.fillText('inhale', canvas.width / 2, 80);
+        // Speak "inhale" when starting to go up (at the beginning of the hill)
+        if (lastPersonX !== null && lastPersonX >= hillPeakX && personX < hillPeakX) {
+          // Just transitioned from going down to going up
+          speakText("Inhale");
+          lastSpokenPhase = "INHALE";
+        }
+      } else {
+        ctx.fillText('exhale', canvas.width / 2, 80);
+        // Speak "exhale" when starting to go down (at the peak)
+        if (lastPersonX !== null && lastPersonX < hillPeakX && personX >= hillPeakX) {
+          // Just transitioned from going up to going down
+          speakText("Exhale");
+          lastSpokenPhase = "EXHALE";
+        }
+      }
+      
+      lastPersonX = personX;
+      
+      ctx.save();
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 28px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('Drink water, and find a quiet spot to breathe', 10, canvas.height - 30);
+      ctx.restore();
+      
+      frame++;
+      
+      requestAnimationFrame(animate);
+    }
+
+    // Check if animation should start (polling since speakIntro is async)
+    function checkAndStartAnimation() {
+      if (animationStarted) {
+        animate();
+      } else {
+        requestAnimationFrame(checkAndStartAnimation);
+      }
+    }
+    
+    // Start checking for animation (will start after user clicks button)
+    checkAndStartAnimation();
+  </script>
+</body>
+</html>

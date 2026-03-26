@@ -61,8 +61,8 @@ test_model_input.py
 one-breath-app/dist/
 one-breath-app/node_modules/
 
-# Large dataset files (optional - uncomment if you don't want to commit dataset)
-archive (1) 2/
+# Large dataset files
+archive (2)/
 # movenet-tensorflow2-singlepose-lightning-v4.tar.gz
 tts_test/venv/
 .venv/

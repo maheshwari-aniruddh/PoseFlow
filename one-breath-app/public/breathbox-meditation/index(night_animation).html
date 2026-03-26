@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Moonrise and Moonset</title>
+	<style>
+		:root {
+			/* Night + variants */
+			--night-top: #050716;
+			--night-bottom: #14172e;
+			--midnight-top: #020310;
+			--midnight-bottom: #090c22;
+			--late-night-top: #06091b;
+			--late-night-bottom: #151a33;
+
+			/* Dawn / sunrise */
+			--pre-dawn-top: #111631;
+			--pre-dawn-bottom: #2a355f;
+			--dawn-top: #1a213f;
+			--dawn-bottom: #3f4b7e;
+			--golden-top: #353e65;
+			--golden-bottom: #f8a85c;
+
+			/* Day */
+			--day-top: #2a4c80;
+			--day-bottom: #82b5ff;
+			--noon-top: #3f75c0;
+			--noon-bottom: #a3ceff;
+
+			/* Dusk / sunset */
+			--dusk-top: #262b57;
+			--dusk-bottom: #f0805a;
+			--late-dusk-top: #181938;
+			--late-dusk-bottom: #332a5c;
+
+			--hill: #0f1b2e;
+			--hill-shadow: #0b1423;
+			--moon: #f0f2f6;
+			--moon-glow: rgba(210, 220, 255, 0.85);
+			--sun: #ffe9a3;
+			--sun-glow: rgba(255, 220, 150, 0.8);
+		}
+
+		html, body {
+			height: 100%;
+			margin: 0;
+			background:
+				linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.85)),
+				linear-gradient(to bottom, hsl(280, 70%, 65%, 0.4), hsl(240, 80%, 75%, 0.4)),
+				url("Screenshot 2025-11-15 at 5.40.05 PM.png") center / cover no-repeat fixed;
+			color: #fff;
+			font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+		}
+
+		.stage {
+			height: 100%;
+			display: grid;
+			place-items: center;
+			background: 
+				radial-gradient(circle at 10% 0%, rgba(0,0,0,0.9), rgba(0,0,0,1)),
+				radial-gradient(circle at 10% 0%, hsl(280, 70%, 65%, 0.2), transparent 60%);
+		}
+
+		.frame {
+			width: min(80vw, 640px);
+			height: min(80vw, 640px);
+			max-height: 640px;
+			border-radius: 24px;
+			border: 1px solid rgba(255,255,255,0.2);
+			box-shadow:
+				0 0 0 1px rgba(255,255,255,0.08),
+				0 24px 40px rgba(0, 0, 0, 0.75),
+				0 0 40px hsl(280, 70%, 65%, 0.3),
+				inset 0 1px 0 rgba(255, 255, 255, 0.2);
+			overflow: hidden;
+			background: #02030a;
+			position: relative;
+		}
+
+		.bottom-mask {
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			height: 22%;
+			background: #000000;
+			z-index: 1;
+			pointer-events: none;
+		}
+
+		.canvas {
+			width: 100%;
+			height: 100%;
+			display: block;
+			position: relative;
+			z-index: 2;
+		}
+
+		/* Twinkling stars subtle animation */
+		.star {
+			animation: twinkle 2.8s ease-in-out infinite;
+			transform-origin: center;
+		}
+		.star:nth-child(3n) { animation-duration: 3.6s; }
+		.star:nth-child(4n) { animation-duration: 4.2s; }
+		.star:nth-child(5n) { animation-duration: 5s; }
+
+		/* Sky follows the moon: darker when low, lighter when high.
+		   Rise (inhale) is slower and longer than the faster exhale/fall. */
+		@keyframes skyCycle {
+			0%   { background: linear-gradient(180deg, var(--midnight-top), var(--midnight-bottom)); }
+			30%  { background: linear-gradient(180deg, var(--night-top), var(--night-bottom)); }
+			55%  { background: linear-gradient(180deg, var(--pre-dawn-top), var(--pre-dawn-bottom)); }
+			70%  { background: linear-gradient(180deg, var(--golden-top), var(--golden-bottom)); }
+			85%  { background: linear-gradient(180deg, var(--night-top), var(--night-bottom)); }
+			100% { background: linear-gradient(180deg, var(--midnight-top), var(--midnight-bottom)); }
+		}
+
+		@keyframes twinkle {
+			0%, 100% { opacity: 0.9; }
+			50% { opacity: 0.4; }
+		}
+		/* Back link */
+		.back-link {
+			position: fixed;
+			top: 20px;
+			left: 20px;
+			color: #ffffff;
+			text-decoration: none;
+			font-size: 18px;
+			font-weight: 500;
+			z-index: 1000;
+			transition: opacity 0.3s ease;
+		}
+		.back-link:hover { opacity: 0.7; }
+		/* Breathing scale – inhale (expand) and exhale (contract) */
+		@keyframes breatheIn {
+			0%   { transform: scale(0.95); }
+			40%  { transform: scale(1.06); }
+			100% { transform: scale(1.06); }
+		}
+
+		@keyframes breatheOut {
+			0%   { transform: scale(1.06); }
+			40%  { transform: scale(0.92); }
+			100% { transform: scale(0.92); }
+		}
+
+		.moon-breath {
+			animation: breatheIn 16s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+			transform-origin: center;
+		}
+
+		.sky-layer {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			animation: skyCycle 16s linear infinite;
+		}
+
+		/* Instruction copy inside the black panel under the hills */
+		.instructions {
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 46px;
+			padding: 0 28px;
+			color: #ffffff;
+			text-align: center;
+			font-weight: 500;
+			line-height: 1.45;
+			z-index: 3;
+			pointer-events: none;
+		}
+		.instructions .line {
+			display: block;
+			font-size: clamp(16px, 2.6vw, 24px);
+			letter-spacing: 0.02em;
+			opacity: 0.95;
+		}
+
+		.start-overlay {
+			position: fixed;
+			inset: 0;
+			background: 
+				linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.85)),
+				linear-gradient(to bottom, hsl(280, 70%, 65%, 0.4), hsl(240, 80%, 75%, 0.4)),
+				url("Screenshot 2025-11-15 at 5.40.05 PM.png") center / cover no-repeat fixed;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 2000;
+		}
+
+		.start-button {
+			padding: 20px 48px;
+			background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.5), hsl(240, 80%, 75%, 0.5));
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 50px;
+			color: #ffffff;
+			font-size: 24px;
+			font-weight: 300;
+			letter-spacing: 0.05em;
+			cursor: pointer;
+			transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+			box-shadow:
+				0 8px 20px rgba(0, 0, 0, 0.6),
+				0 0 15px hsl(280, 70%, 65%, 0.3),
+				inset 0 1px 0 rgba(255, 255, 255, 0.2);
+		}
+
+		.start-button:hover {
+			transform: translateY(-2px) scale(1.05);
+			background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.7), hsl(240, 80%, 75%, 0.7));
+			box-shadow:
+				0 12px 28px rgba(0, 0, 0, 0.7),
+				0 0 22px hsl(280, 70%, 65%, 0.5),
+				inset 0 1px 0 rgba(255, 255, 255, 0.3);
+		}
+
+		.start-overlay.hidden {
+			display: none;
+		}
+
+		.narration-button {
+			position: fixed;
+			bottom: 30px;
+			left: 50%;
+			transform: translateX(-50%);
+			padding: 16px 48px;
+			background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.5), hsl(240, 80%, 75%, 0.5));
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 50px;
+			color: #ffffff;
+			font-size: 20px;
+			font-weight: 300;
+			letter-spacing: 0.05em;
+			cursor: pointer;
+			transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+			box-shadow:
+				0 8px 20px rgba(0, 0, 0, 0.6),
+				0 0 15px hsl(280, 70%, 65%, 0.3),
+				inset 0 1px 0 rgba(255, 255, 255, 0.2);
+			z-index: 100;
+		}
+
+		.narration-button:hover {
+			transform: translateX(-50%) translateY(-2px);
+			background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.7), hsl(240, 80%, 75%, 0.7));
+			box-shadow:
+				0 12px 28px rgba(0, 0, 0, 0.7),
+				0 0 22px hsl(280, 70%, 65%, 0.5),
+				inset 0 1px 0 rgba(255, 255, 255, 0.3);
+		}
+
+		.narration-button.hidden {
+			display: none;
+		}
+
+		.narration-button:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+		.narration-button:disabled:hover {
+			transform: translateX(-50%);
+		}
+	</style>
+</head>
+<body>
+	<a href="menu.html" class="back-link">← Back</a>
+	
+	<div class="start-overlay" id="startOverlay">
+		<button class="start-button" id="startButton">Start Night Meditation</button>
+	</div>
+	
+	<button class="narration-button hidden" id="narrationButton">Start Narration</button>
+	
+	<div class="stage">
+		<div class="frame">
+			<div class="instructions">
+				<span class="line">Breathe in deeply and tighten all of your muscles,</span>
+				<span class="line">then relax and exhale</span>
+			</div>
+			<div class="sky-layer"></div>
+			<div class="bottom-mask"></div>
+			<svg class="canvas" viewBox="0 0 1600 1000" role="img" aria-label="Moon and sun rising and setting over hills, like breathing">
+			<defs>
+				<radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+					<stop offset="0%" stop-color="var(--moon-glow)" />
+					<stop offset="60%" stop-color="rgba(210,220,255,0.18)" />
+					<stop offset="100%" stop-color="rgba(210,220,255,0)" />
+				</radialGradient>
+				<radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+					<stop offset="0%" stop-color="var(--sun-glow)" />
+					<stop offset="60%" stop-color="rgba(255,220,150,0.3)" />
+					<stop offset="100%" stop-color="rgba(255,220,150,0)" />
+				</radialGradient>
+				<filter id="soften">
+					<feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+					<feBlend in="SourceGraphic" in2="blur" mode="screen" />
+				</filter>
+			</defs>
+
+			<!-- Stars layer -->
+			<g id="stars" fill="#dfe6ff" opacity="0.9" filter="url(#soften)">
+				<circle class="star" cx="150" cy="120" r="2.3" />
+				<circle class="star" cx="260" cy="80" r="1.8" />
+				<circle class="star" cx="420" cy="160" r="1.6" />
+				<circle class="star" cx="560" cy="70" r="1.9" />
+				<circle class="star" cx="740" cy="140" r="1.7" />
+				<circle class="star" cx="920" cy="100" r="2.1" />
+				<circle class="star" cx="1100" cy="130" r="1.5" />
+				<circle class="star" cx="1270" cy="60" r="1.9" />
+				<circle class="star" cx="1420" cy="150" r="1.6" />
+				<circle class="star" cx="1550" cy="110" r="1.8" />
+				<circle class="star" cx="240" cy="230" r="1.7" />
+				<circle class="star" cx="360" cy="260" r="1.5" />
+				<circle class="star" cx="520" cy="230" r="2.0" />
+				<circle class="star" cx="680" cy="250" r="1.6" />
+				<circle class="star" cx="860" cy="220" r="1.7" />
+				<circle class="star" cx="1010" cy="260" r="1.8" />
+				<circle class="star" cx="1180" cy="230" r="1.6" />
+				<circle class="star" cx="1360" cy="260" r="1.7" />
+			</g>
+
+			<!-- Moon + glow: inhale (rise) then exhale (set), vertical motion -->
+			<g class="moon-breath">
+				<circle cx="800" r="80" fill="url(#moonGlow)">
+					<!-- vertical motion: below hill → high in sky → below hill -->
+					<animate attributeName="cy"
+						values="900;280;900"
+						keyTimes="0;0.7;1"
+						dur="16s"
+						repeatCount="indefinite"
+						calcMode="linear" />
+				</circle>
+				<circle cx="800" r="36" fill="var(--moon)" stroke="rgba(255,255,255,0.4)" stroke-width="2">
+					<animate attributeName="cy"
+						values="900;280;900"
+						keyTimes="0;0.7;1"
+						dur="16s"
+						repeatCount="indefinite"
+						calcMode="linear" />
+				</circle>
+			</g>
+
+			<!-- Hills: horizon + mid + foreground bottom hill -->
+			<g transform="translate(0,0)">
+				<!-- distant hill near horizon -->
+				<path d="M0,800 C 250,720 380,760 530,800 C 700,845 900,830 1040,800 C 1200,760 1350,760 1600,800 L1600,1000 L0,1000 Z" fill="var(--hill)" />
+				<!-- mid hill -->
+				<path d="M0,840 C 300,790 520,840 740,860 C 980,880 1200,870 1600,860 L1600,1000 L0,1000 Z" fill="var(--hill-shadow)" opacity="0.9" />
+				<!-- foreground bottom hill, stretched to fully cover the frame bottom edge -->
+				<path d="M-50,900 C 220,870 480,910 760,930 C 1040,950 1320,945 1650,930 L1650,1000 L-50,1000 Z"
+					fill="#050a16"
+					opacity="0.98" />
+				<!-- solid base from just under the mid hill to frame edge (pure black) -->
+				<rect x="-50" y="840" width="1750" height="260" fill="#000000" />
+			</g>
+			<!-- Optional small label for inhale / exhale -->
+			<g font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle">
+				<!-- inhale while moon is rising – grows as the moon rises -->
+				<text x="800" y="130" fill="rgba(255,255,255,0.88)" opacity="1" font-size="34">
+					<animate attributeName="opacity"
+						values="1;1;0;0"
+						keyTimes="0;0.68;0.7;1"
+						dur="16s"
+						repeatCount="indefinite" />
+					<animate attributeName="font-size"
+						values="26;60;60;26"
+						keyTimes="0;0.68;0.7;1"
+						dur="16s"
+						repeatCount="indefinite" />
+					Inhale
+				</text>
+				<!-- exhale while moon is setting – shrinks as the moon sets -->
+				<text x="800" y="130" fill="rgba(255,255,255,0.98)" opacity="0" font-size="60">
+					<animate attributeName="opacity"
+						values="0;0;1;1"
+						keyTimes="0;0.7;0.7;1"
+						dur="16s"
+						repeatCount="indefinite" />
+					<animate attributeName="font-size"
+						values="60;60;24"
+						keyTimes="0;0.7;1"
+						dur="16s"
+						repeatCount="indefinite" />
+					Exhale
+				</text>
+			</g>
+		</svg>
+		</div>
+	</div>
+
+	<script>
+		// Text-to-speech intro script for night meditation
+		const nightScript = "Good evening. Welcome to your night meditation. The day is coming to a close, and it's time to release all that has passed. Find a comfortable position, perhaps lying down or sitting with your back supported. Close your eyes if you'd like. Let go of everything that happened today—the worries, the tasks, the conversations. Watch the moon rise and set with your breath. As the moon rises, breathe in slowly, drawing in peace and tranquility. As it sets, breathe out completely, releasing all tension and letting the day fade away. This gentle rhythm will prepare your body and mind for deep, restful sleep. When you're ready, we'll begin.";
+		
+		// Deepgram TTS backend URL (same as yoga feedback)
+		const TTS_BACKEND_URL = "http://localhost:5001/speak";
+		const TTS_VOICE = "arcas"; // Deep male voice, same as yoga feedback
+
+		let animationStarted = false;
+		let lastSpokenPhase = null;
+		let isSpeaking = false;
+		let moonAnimationStarted = false;
+
+		// Helper function to speak using Deepgram TTS
+		async function speakText(text) {
+			if (isSpeaking) return; // Don't interrupt if already speaking
+			
+			try {
+				isSpeaking = true;
+				const response = await fetch(TTS_BACKEND_URL, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						text: text,
+						voice: TTS_VOICE
+					})
+				});
+
+				if (!response.ok) {
+					console.error('TTS Error:', response.status);
+					isSpeaking = false;
+					return;
+				}
+
+				const audioBlob = await response.blob();
+				if (audioBlob.size === 0) {
+					console.error('Empty audio response');
+					isSpeaking = false;
+					return;
+				}
+
+				const audioUrl = URL.createObjectURL(audioBlob);
+				const audio = new Audio(audioUrl);
+				audio.volume = 1.0; // Maximum volume
+
+				audio.addEventListener('ended', () => {
+					URL.revokeObjectURL(audioUrl);
+					isSpeaking = false;
+				});
+
+				audio.addEventListener('error', () => {
+					URL.revokeObjectURL(audioUrl);
+					isSpeaking = false;
+				});
+
+				await audio.play();
+			} catch (error) {
+				console.error('TTS Error:', error);
+				isSpeaking = false;
+			}
+		}
+
+		// Start button handler
+		const startButton = document.getElementById('startButton');
+		const startOverlay = document.getElementById('startOverlay');
+		const narrationButton = document.getElementById('narrationButton');
+		let currentAudio = null;
+		let audioBlobCache = null;
+		
+		startButton.addEventListener('click', () => {
+			// Hide overlay and show narration button (disabled initially)
+			startOverlay.classList.add('hidden');
+			narrationButton.classList.remove('hidden');
+			narrationButton.disabled = true;
+			narrationButton.textContent = 'Loading narration...';
+			
+			// Pre-fetch audio in background (don't try to play yet)
+			fetch(TTS_BACKEND_URL, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					text: nightScript,
+					voice: TTS_VOICE
+				})
+			}).then(response => {
+				if (!response.ok) {
+					console.error('TTS Error:', response.status);
+					narrationButton.textContent = 'Narration unavailable';
+					narrationButton.disabled = true;
+					return null;
+				}
+				return response.blob();
+			}).then(audioBlob => {
+				if (!audioBlob || audioBlob.size === 0) {
+					console.error('Empty audio response');
+					narrationButton.textContent = 'Narration unavailable';
+					narrationButton.disabled = true;
+					return;
+				}
+				audioBlobCache = audioBlob;
+				narrationButton.textContent = 'Start Narration';
+				narrationButton.disabled = false;
+			}).catch(error => {
+				console.error('TTS Error:', error);
+				narrationButton.textContent = 'Narration unavailable';
+				narrationButton.disabled = true;
+			});
+		});
+
+		// Narration button - plays audio with direct user interaction
+		narrationButton.addEventListener('click', (e) => {
+			// Prevent if disabled or no audio
+			if (narrationButton.disabled || !audioBlobCache) {
+				e.preventDefault();
+				return;
+			}
+
+			// Hide narration button
+			narrationButton.classList.add('hidden');
+
+			// Create and play audio - this is direct user interaction so it will work
+			const audioUrl = URL.createObjectURL(audioBlobCache);
+			currentAudio = new Audio(audioUrl);
+			currentAudio.volume = 1.0; // Maximum volume
+
+			// Set up event listeners
+			currentAudio.addEventListener('ended', () => {
+				URL.revokeObjectURL(audioUrl);
+				animationStarted = true;
+				currentAudio = null;
+			});
+
+			currentAudio.addEventListener('error', (e) => {
+				console.error('Audio playback error:', e);
+				URL.revokeObjectURL(audioUrl);
+				animationStarted = true;
+				currentAudio = null;
+			});
+
+			// Play directly - this is in direct response to user click
+			currentAudio.play().then(() => {
+				// Playback started successfully
+			}).catch((e) => {
+				console.error('Audio play error:', e);
+				URL.revokeObjectURL(audioUrl);
+				animationStarted = true;
+				currentAudio = null;
+			});
+		});
+
+		// Pause animations initially
+		const moonBreath = document.querySelector('.moon-breath');
+		const skyLayer = document.querySelector('.sky-layer');
+		const stars = document.querySelectorAll('.star');
+		
+		if (moonBreath) {
+			moonBreath.style.animationPlayState = 'paused';
+		}
+		if (skyLayer) {
+			skyLayer.style.animationPlayState = 'paused';
+		}
+		stars.forEach(star => {
+			star.style.animationPlayState = 'paused';
+		});
+
+		// Check if animation should start (polling since speakIntro is async)
+		function checkAndStartAnimation() {
+			if (animationStarted) {
+				if (moonBreath) {
+					moonBreath.style.animationPlayState = 'running';
+				}
+				if (skyLayer) {
+					skyLayer.style.animationPlayState = 'running';
+				}
+				stars.forEach(star => {
+					star.style.animationPlayState = 'running';
+				});
+				
+				// Start TTS cycle for inhale/exhale (16 second cycle)
+				// Moon rises 0-70% (inhale), sets 70-100% (exhale)
+				let cycleTime = 0;
+				const cycleDuration = 16000; // 16 seconds
+				const exhaleStart = cycleDuration * 0.7; // 70% of cycle
+				
+				function updateTTS() {
+					if (!animationStarted) return;
+					
+					const currentTime = cycleTime % cycleDuration;
+					
+					// Reset phase tracking at the start of each cycle
+					if (currentTime < 50) {
+						lastSpokenPhase = null;
+					}
+					
+					// Speak "inhale" at the start of each cycle (0%)
+					if (currentTime < 100 && lastSpokenPhase !== "INHALE") {
+						speakText("Inhale");
+						lastSpokenPhase = "INHALE";
+					}
+					// Speak "exhale" at 70% of cycle
+					else if (currentTime >= exhaleStart && currentTime < exhaleStart + 100 && lastSpokenPhase !== "EXHALE") {
+						speakText("Exhale");
+						lastSpokenPhase = "EXHALE";
+					}
+					
+					cycleTime += 100; // Update every 100ms
+					setTimeout(updateTTS, 100);
+				}
+				
+				updateTTS();
+			} else {
+				setTimeout(checkAndStartAnimation, 100);
+			}
+		}
+		
+		// Start checking for animation (will start after user clicks button)
+		checkAndStartAnimation();
+	</script>
+</body>
+</html>

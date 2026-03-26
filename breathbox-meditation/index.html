@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PoseFlow • Breath Galaxy</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.85)),
+        linear-gradient(to bottom, hsl(280, 70%, 65%, 0.4), hsl(240, 80%, 75%, 0.4)),
+        url("Screenshot 2025-11-15 at 5.40.05 PM.png") center / cover no-repeat fixed;
+      color: #f5f5ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .back-link {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 500;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      z-index: 1000;
+      transition: opacity 0.3s ease;
+    }
+    .back-link:hover {
+      opacity: 0.7;
+    }
+
+    .page {
+      max-width: 1100px;
+      width: 100%;
+      padding: 24px 20px 30px;
+      position: relative;
+    }
+
+    /* faint stars */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.12) 0, transparent 55%),
+        radial-gradient(circle at 80% 15%, rgba(142,182,255,0.18) 0, transparent 60%),
+        radial-gradient(circle at 70% 80%, rgba(255,214,165,0.14) 0, transparent 55%);
+      mix-blend-mode: screen;
+      opacity: 0.4;
+      z-index: 0;
+    }
+
+    .shell {
+      position: relative;
+      border-radius: 30px;
+      padding: 20px 20px 22px;
+      background: radial-gradient(circle at top left, hsl(280, 70%, 65%, 0.55), rgba(6, 10, 40, 0.98));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.9),
+        0 0 40px hsl(280, 70%, 65%, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 22px;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at 0% 0%, hsl(280, 70%, 65%, 0.4), transparent 60%);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+      animation: glowDrift 20s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes glowDrift {
+      0%   { transform: translate(0, 0); }
+      50%  { transform: translate(12%, 10%); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .header {
+      grid-column: 1 / -1;
+      text-align: center;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #f4f6ff;
+    }
+
+    .header p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #b8c0ff;
+    }
+
+    /* LEFT: galaxy visual */
+    .visual {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      z-index: 2;
+    }
+
+    .galaxy-wrap {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ORIGINAL BOUNCING BALL BOX - from original index.html */
+    .breath-box {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      background: linear-gradient(135deg, hsl(280, 70%, 65%) 0%, hsl(260, 75%, 70%) 45%, hsl(240, 80%, 75%) 100%);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.75),
+        0 0 22px hsl(280, 70%, 65%, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+      /* 4-7-8 cycle: 4s inhale, 7s hold, 8s exhale = 19s total */
+      animation: box-breathe 19s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+
+    /* LUNGS centered inside the box */
+    .lungs {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      animation: lungsPulse 19s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+
+    .lungs-inner {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .trachea {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 60px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, hsl(280, 70%, 85%), hsl(260, 75%, 80%));
+      box-shadow: 0 0 10px hsl(280, 70%, 65%, 0.6);
+    }
+
+    .lung {
+      width: 70px;
+      height: 100px;
+      border-radius: 60px 60px 45px 45px;
+      background: radial-gradient(circle at 30% 20%, #ffffff, hsl(280, 70%, 75%) 40%, hsl(260, 75%, 70%) 80%);
+      box-shadow: 0 0 14px rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .lung-left {
+      transform-origin: right center;
+    }
+
+    .lung-right {
+      transform-origin: left center;
+    }
+
+    /* bouncing ball inside the box */
+    .bouncing-ball {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow:
+        0 0 8px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(255, 255, 255, 0.6);
+      /* Bounces off walls at: end inhale (21%), end hold (58%), end exhale (100%) */
+      animation: ballBounce 19s linear infinite;
+      animation-play-state: paused;
+      z-index: 4;
+    }
+
+    .phase-text {
+      font-size: 13px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #e1e5ff;
+      text-align: center;
+    }
+
+    .time-text {
+      font-size: 12px;
+      color: #aeb8ff;
+      text-align: center;
+    }
+
+    .connection-text {
+      font-size: 11px;
+      color: #9fd3ff;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    /* RIGHT: copy */
+    .copy {
+      z-index: 2;
+      position: relative;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      background: rgba(8, 10, 34, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #d4ddff;
+      margin-bottom: 10px;
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, hsl(280, 70%, 75%), hsl(260, 75%, 80%));
+      box-shadow: 0 0 8px hsl(280, 70%, 65%, 0.9);
+    }
+
+    .copy h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      color: #f1f3ff;
+    }
+
+    .copy p {
+      margin: 0 0 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #c7cffc;
+    }
+
+    .who-line {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(6, 11, 39, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 13px;
+      color: #e0e6ff;
+    }
+
+    .who-label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #9fa9ff;
+      margin-bottom: 3px;
+    }
+
+    .tiny-note {
+      font-size: 11px;
+      color: #8f99ff;
+      margin-top: 8px;
+    }
+
+    .start-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.85)),
+                  linear-gradient(to bottom, hsl(280, 70%, 65%, 0.4), hsl(240, 80%, 75%, 0.4)),
+                  url("Screenshot 2025-11-15 at 5.40.05 PM.png") center / cover no-repeat fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .start-button {
+      padding: 20px 48px;
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.5), hsl(240, 80%, 75%, 0.5));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.6),
+        0 0 15px hsl(280, 70%, 65%, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .start-button:hover {
+      transform: translateY(-2px) scale(1.05);
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.7), hsl(240, 80%, 75%, 0.7));
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.7),
+        0 0 22px hsl(280, 70%, 65%, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .start-overlay.hidden {
+      display: none;
+    }
+
+    .narration-button {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 16px 48px;
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.5), hsl(240, 80%, 75%, 0.5));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.6),
+        0 0 15px hsl(280, 70%, 65%, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      z-index: 100;
+    }
+
+    .narration-button:hover {
+      transform: translateX(-50%) translateY(-2px);
+      background: linear-gradient(135deg, hsl(280, 70%, 65%, 0.7), hsl(240, 80%, 75%, 0.7));
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.7),
+        0 0 22px hsl(280, 70%, 65%, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .narration-button.hidden {
+      display: none;
+    }
+
+    .narration-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .narration-button:disabled:hover {
+      transform: translateX(-50%);
+    }
+
+    @media (max-width: 800px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 22px;
+      }
+
+      .galaxy-wrap {
+        margin-top: 4px;
+      }
+    }
+
+    /* 4–7–8 animations */
+    /* total 19s: 4 inhale, 7 hold, 8 exhale */
+    /* box scale animation for 4-7-8 */
+    @keyframes box-breathe {
+      0%   { transform: scale(0.9); }
+      21%  { transform: scale(1.08); } /* end inhale */
+      58%  { transform: scale(1.08); } /* end hold */
+      100% { transform: scale(0.9); }  /* end exhale */
+    }
+
+    /* lungs pulse */
+    @keyframes lungsPulse {
+      0%   { transform: scale(0.9); opacity: 0.9; }
+      21%  { transform: scale(1.06); opacity: 1; }
+      58%  { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.9; }
+    }
+
+    /* ball bounces off walls at: end inhale (21%), end hold (58%), end exhale (100%) */
+    @keyframes ballBounce {
+      /* 0-21%: Inhale - ball moves from center-left to right wall */
+      0% {
+        top: 50%;
+        left: 20px;
+        transform: translate(-50%, -50%);
+      }
+      21% {
+        top: 50%;
+        left: calc(100% - 20px);
+        transform: translate(-50%, -50%);
+      }
+      /* 21-58%: Hold - ball moves from right wall to bottom wall */
+      58% {
+        top: calc(100% - 20px);
+        left: calc(100% - 20px);
+        transform: translate(-50%, -50%);
+      }
+      /* 58-100%: Exhale - ball moves from bottom-right to left wall */
+      100% {
+        top: 50%;
+        left: 20px;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <a href="/menu" class="back-link">← Back</a>
+  
+  <div class="start-overlay" id="startOverlay">
+    <button class="start-button" id="startButton">Start Stress Relief Meditation</button>
+  </div>
+  
+  <button class="narration-button hidden" id="narrationButton">Start Narration</button>
+  
+  <div class="stars"></div>
+
+  <div class="page">
+    <div class="shell">
+      <div class="header">
+        <h1>Breath Galaxy</h1>
+        <p>One shared rhythm. Different lives, different stories, all connected by a single 4–7–8 breath.</p>
+      </div>
+
+      <!-- LEFT: VISUAL -->
+      <div class="visual">
+        <div class="galaxy-wrap">
+          <!-- ORIGINAL BOUNCING BALL BOX with lungs -->
+          <div class="breath-box">
+            <!-- lungs in the middle -->
+            <div class="lungs">
+              <div class="lungs-inner">
+                <div class="trachea"></div>
+                <div class="lung lung-left"></div>
+                <div class="lung lung-right"></div>
+              </div>
+            </div>
+
+            <!-- bouncing ball inside the box -->
+            <div class="bouncing-ball"></div>
+          </div>
+        </div>
+
+        <div class="phase-text" id="phaseText">INHALE • 4s</div>
+        <div class="time-text" id="timeText">Next cycle in 19s</div>
+        <div class="connection-text" id="connectionText">••• syncing with other breaths •••</div>
+      </div>
+
+      <!-- RIGHT: COPY -->
+      <div class="copy">
+        <div class="pill">
+          <span class="pill-dot"></span>
+          POSEFLOW · TOGETHER
+        </div>
+
+        <h2>What you're looking at</h2>
+        <p>
+          The glowing box in the center is <strong>your breath</strong>. The ball bouncing inside represents
+          the rhythm of your 4–7–8 breathing pattern.
+        </p>
+
+        <p>
+          Every time the ball completes a bounce cycle, that's one full breath:
+        </p>
+
+        <p>
+          <strong>Inhale for 4 seconds</strong> as the ball bounces to the right wall.  
+          <strong>Hold for 7</strong> as it bounces to the bottom wall.  
+          <strong>Exhale for 8</strong> as it bounces back to the left wall.
+        </p>
+
+        <div class="who-line">
+          <span class="who-label">right now, you might be breathing with</span>
+          <span id="whoText">a student lying in bed, trying to switch off after a long day.</span>
+        </div>
+
+        <p class="tiny-note">
+          None of these people know each other. But for a few seconds, all of you are doing the exact same quiet, invisible thing:
+          letting your nervous systems agree to calm down.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Text-to-speech intro script for stress relief
+    const stressReliefScript = "Settle down. Sit comfortably and relieve yourself of the stresses of the day. Let go of all tension. Close your eyes if you'd like, and prepare to breathe. We'll use the four-seven-eight breathing technique. Breathe in for four seconds, hold for seven, and exhale for eight. This pattern helps activate your body's relaxation response. When you're ready, we'll begin.";
+    
+    // Deepgram TTS backend URL (same as yoga feedback)
+    const TTS_BACKEND_URL = "http://localhost:5001/speak";
+    const TTS_VOICE = "arcas"; // Deep male voice, same as yoga feedback
+
+    // Start button handler
+    const startButton = document.getElementById('startButton');
+    const startOverlay = document.getElementById('startOverlay');
+    const narrationButton = document.getElementById('narrationButton');
+    let currentAudio = null;
+    let audioBlobCache = null;
+    
+    startButton.addEventListener('click', () => {
+      // Hide overlay and show narration button (disabled initially)
+      startOverlay.classList.add('hidden');
+      narrationButton.classList.remove('hidden');
+      narrationButton.disabled = true;
+      narrationButton.textContent = 'Loading narration...';
+      
+      // Pre-fetch audio in background (don't try to play yet)
+      fetch(TTS_BACKEND_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: stressReliefScript,
+          voice: TTS_VOICE
+        })
+      }).then(response => {
+        if (!response.ok) {
+          console.error('TTS Error:', response.status);
+          narrationButton.textContent = 'Narration unavailable';
+          narrationButton.disabled = true;
+          return null;
+        }
+        return response.blob();
+      }).then(audioBlob => {
+        if (!audioBlob || audioBlob.size === 0) {
+          console.error('Empty audio response');
+          narrationButton.textContent = 'Narration unavailable';
+          narrationButton.disabled = true;
+          return;
+        }
+        audioBlobCache = audioBlob;
+        narrationButton.textContent = 'Start Narration';
+        narrationButton.disabled = false;
+      }).catch(error => {
+        console.error('TTS Error:', error);
+        narrationButton.textContent = 'Narration unavailable';
+        narrationButton.disabled = true;
+      });
+    });
+
+    // Narration button - plays audio with direct user interaction
+    narrationButton.addEventListener('click', (e) => {
+      // Prevent if disabled or no audio
+      if (narrationButton.disabled || !audioBlobCache) {
+        e.preventDefault();
+        return;
+      }
+
+      // Hide narration button
+      narrationButton.classList.add('hidden');
+
+      // Create and play audio - this is direct user interaction so it will work
+      const audioUrl = URL.createObjectURL(audioBlobCache);
+      currentAudio = new Audio(audioUrl);
+      currentAudio.volume = 1.0; // Maximum volume
+
+      // Set up event listeners
+      currentAudio.addEventListener('ended', () => {
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+        
+        // Resume animations after speech
+        const breathBox = document.querySelector('.breath-box');
+        const lungs = document.querySelector('.lungs');
+        const bouncingBall = document.querySelector('.bouncing-ball');
+        
+        if (breathBox && lungs) {
+          breathBox.style.animationPlayState = 'running';
+          lungs.style.animationPlayState = 'running';
+        }
+        if (bouncingBall) {
+          bouncingBall.style.animationPlayState = 'running';
+        }
+        
+        // Start the update loop after speech
+        updateLoop();
+        setInterval(updateLoop, 1000);
+      });
+
+      currentAudio.addEventListener('error', (e) => {
+        console.error('Audio playback error:', e);
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+        
+        // Start animations even if audio fails
+        const breathBox = document.querySelector('.breath-box');
+        const lungs = document.querySelector('.lungs');
+        const bouncingBall = document.querySelector('.bouncing-ball');
+        
+        if (breathBox && lungs) {
+          breathBox.style.animationPlayState = 'running';
+          lungs.style.animationPlayState = 'running';
+        }
+        if (bouncingBall) {
+          bouncingBall.style.animationPlayState = 'running';
+        }
+        
+        updateLoop();
+        setInterval(updateLoop, 1000);
+      });
+
+      // Play directly - this is in direct response to user click
+      currentAudio.play().then(() => {
+        // Playback started successfully
+      }).catch((e) => {
+        console.error('Audio play error:', e);
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+        
+        // Start animations even if audio fails
+        const breathBox = document.querySelector('.breath-box');
+        const lungs = document.querySelector('.lungs');
+        const bouncingBall = document.querySelector('.bouncing-ball');
+        
+        if (breathBox && lungs) {
+          breathBox.style.animationPlayState = 'running';
+          lungs.style.animationPlayState = 'running';
+        }
+        if (bouncingBall) {
+          bouncingBall.style.animationPlayState = 'running';
+        }
+        
+        updateLoop();
+        setInterval(updateLoop, 1000);
+      });
+    });
+
+    // 4–7–8 timings in seconds
+    const inhale = 4;
+    const hold = 7;
+    const exhale = 8;
+    const total = inhale + hold + exhale; // 19
+
+    const phaseText = document.getElementById("phaseText");
+    const timeText = document.getElementById("timeText");
+    const connectionText = document.getElementById("connectionText");
+    const whoText = document.getElementById("whoText");
+
+    let elapsed = 0;
+    let lastSpokenPhase = null;
+    let isSpeaking = false;
+
+    // Helper function to speak using Deepgram TTS
+    async function speakText(text) {
+      if (isSpeaking) return; // Don't interrupt if already speaking
+      
+      try {
+        isSpeaking = true;
+        const response = await fetch(TTS_BACKEND_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: text,
+            voice: TTS_VOICE
+          })
+        });
+
+        if (!response.ok) {
+          console.error('TTS Error:', response.status);
+          isSpeaking = false;
+          return;
+        }
+
+        const audioBlob = await response.blob();
+        if (audioBlob.size === 0) {
+          console.error('Empty audio response');
+          isSpeaking = false;
+          return;
+        }
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.volume = 1.0; // Maximum volume
+
+        audio.addEventListener('ended', () => {
+          URL.revokeObjectURL(audioUrl);
+          isSpeaking = false;
+        });
+
+        audio.addEventListener('error', () => {
+          URL.revokeObjectURL(audioUrl);
+          isSpeaking = false;
+        });
+
+        await audio.play();
+      } catch (error) {
+        console.error('TTS Error:', error);
+        isSpeaking = false;
+      }
+    }
+
+    const whoLines = [
+      "a nurse finishing a night shift, finally taking a moment to breathe.",
+      "someone in another time zone who can't sleep and is trying this instead of scrolling.",
+      "a parent sitting in their car before going inside, resetting after a long day.",
+      "a teenager in a tiny room, stressed about school, slowing their breath on purpose.",
+      "a software engineer between meetings, trying not to completely burn out.",
+      "an athlete cooling down after practice, focusing on their lungs instead of their stats.",
+      "someone on a crowded train, headphones in, using this to stay calm.",
+      "a college student staring at an unfinished assignment, taking one honest pause.",
+      "a teacher who just turned off the classroom lights and is finally alone for a second.",
+      "a stranger who randomly found this page and decided to give it one minute."
+    ];
+
+    function pickNewWhoLine() {
+      const idx = Math.floor(Math.random() * whoLines.length);
+      whoText.textContent = whoLines[idx];
+    }
+
+    function updateLoop() {
+      const t = elapsed % total;
+
+      let phase = "";
+      let leftInPhase = 0;
+
+      if (t < inhale) {
+        phase = "INHALE";
+        leftInPhase = inhale - t;
+        // Speak "inhale" at the start of each cycle
+        if (t === 0 && lastSpokenPhase !== "INHALE") {
+          speakText("Inhale");
+          lastSpokenPhase = "INHALE";
+        }
+      } else if (t < inhale + hold) {
+        phase = "HOLD";
+        leftInPhase = inhale + hold - t;
+        // Speak "hold" at the start of hold phase
+        if (t === inhale && lastSpokenPhase !== "HOLD") {
+          speakText("Hold");
+          lastSpokenPhase = "HOLD";
+        }
+      } else {
+        phase = "EXHALE";
+        leftInPhase = total - t;
+        // Speak "exhale" at the start of exhale phase
+        if (t === inhale + hold && lastSpokenPhase !== "EXHALE") {
+          speakText("Exhale");
+          lastSpokenPhase = "EXHALE";
+        }
+      }
+
+      phaseText.textContent = `${phase} • ${leftInPhase}s`;
+
+      const remaining = total - t;
+      timeText.textContent = `Next cycle in ${remaining}s`;
+
+      // Mild fake "sync" text
+      if (t === 0) {
+        connectionText.textContent = "syncing with other breaths • new cycle";
+        pickNewWhoLine();
+        lastSpokenPhase = null; // Reset for new cycle
+      } else if (t === inhale) {
+        connectionText.textContent = "lungs full · holding together";
+      } else if (t === inhale + hold) {
+        connectionText.textContent = "slow exhale · everyone softens a bit";
+      }
+
+      elapsed++;
+    }
+
+  </script>
+</body>
+</html>

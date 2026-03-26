@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node
+node_modules
+dist-ssr
+*.local
+
+# Project specific
+output/
+*.pb
+variables/
+saved_model.pb
+test_model_input.py
+*.mp3
+*.wav
+
+# Build outputs
+one-breath-app/dist/
+one-breath-app/node_modules/
+
+# Large dataset files (optional - uncomment if you don't want to commit dataset)
+archive (1) 2/
+# movenet-tensorflow2-singlepose-lightning-v4.tar.gz
+tts_test/venv/
+.venv/

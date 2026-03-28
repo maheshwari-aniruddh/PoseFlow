@@ -1,4 +1,4 @@
-# YogaBuddy - Real-Time Yoga Pose Detection & Feedback
+# PoseFLow - Real-Time Yoga Pose Detection & Feedback
 
 A real-time yoga app that provides on-device pose detection, classification, form correction, rep counting, and progress scoring.
 
